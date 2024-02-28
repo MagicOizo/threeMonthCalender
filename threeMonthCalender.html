@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="de-DE">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+		<title>Dreimonats Kalender</title>
+		<script>
+			var Months = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+			function prepareSite()
+			{
+				document.getElementById('pickedMonth').addEventListener("change",function(){changeDate();});
+				document.getElementById('today').addEventListener("click",function(){gotoToday();});
+				document.getElementById('prev').addEventListener("click",function(){gotoNext(-1);});
+				document.getElementById('next').addEventListener("click",function(){gotoNext(1);});
+				gotoToday();
+			}
+			
+			function changeDate()
+			{
+				let pickedMonth = new Date(document.getElementById('pickedMonth').value + "-01");
+				let lastMonth = new Date(pickedMonth.getFullYear(), pickedMonth.getMonth()-1, 1);
+				let nextMonth = new Date(pickedMonth.getFullYear(), pickedMonth.getMonth()+1, 1);
+				let divLast = document.getElementById('letzter');
+				let divCurrent = document.getElementById('dieser');
+				let divNext = document.getElementById('naechster');
+				buildMonthTable(divLast,lastMonth);
+				buildMonthTable(divCurrent,pickedMonth);
+				buildMonthTable(divNext,nextMonth);
+				
+			}
+			
+			Date.prototype.getWeekNumber = function(){
+				var d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
+				var dayNum = d.getUTCDay() || 7;
+				d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+				var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+				return Math.ceil((((d - yearStart) / 86400000) + 1)/7)
+			};
+			
+			function buildMonthTable(parentDiv, buildMonth)
+			{
+				//Clar old content
+				parentDiv.innerHTML = '';
+				//Caption of Month Table
+				let caption = document.createElement("h2");
+				caption.innerText = Months[buildMonth.getMonth()] + " " + buildMonth.getFullYear();
+				parentDiv.appendChild(caption);
+				let tempDay = new Date(buildMonth);
+				tempDay.setHours(0,0,0,0);
+				//Table
+				let tempWeekday = tempDay.getDay();
+				if(tempWeekday != 1)
+				{
+					tempWeekday -= 1;
+					if(tempWeekday < 0)
+					{
+						tempWeekday = 6;
+					}
+					tempDay.setDate(tempDay.getDate() - tempWeekday);
+				}
+				let tempTable = document.createElement("table");
+				let tempLine = document.createElement("tr");
+				let tempField;
+				['KW','Mo','Di','Mi','Do','Fr','Sa','So'].forEach((column) => {
+					tempField = document.createElement("th");
+					if(column === 'KW')
+					{
+						tempField.classList.add('calenderWeek');
+					}
+					tempField.innerText = column;
+					tempLine.appendChild(tempField);
+				});
+				tempTable.appendChild(tempLine);
+				do
+				{
+					tempLine = document.createElement("tr");
+					tempField = document.createElement("td");
+					tempField.classList.add('calenderWeek');
+					tempField.innerText = tempDay.getWeekNumber();
+					tempLine.appendChild(tempField);
+					do
+					{
+						tempField = document.createElement("td");
+						if(tempDay.getMonth() != buildMonth.getMonth())
+						{
+							tempField.classList.add('outsideMonth');
+						}
+						if(tempDay.valueOf()===new Date().setHours(0,0,0,0).valueOf())
+						{
+							tempField.classList.add('today');
+						}
+						tempField.innerText = tempDay.getDate();
+						tempLine.appendChild(tempField);
+						tempDay.setDate(tempDay.getDate() + 1);
+					} while (tempDay.getDay() !== 1);
+					tempTable.appendChild(tempLine);
+				} while (tempDay.getMonth() === buildMonth.getMonth());
+				parentDiv.appendChild(tempTable);
+			}
+			
+			function gotoToday()
+			{
+				let today = new Date();
+				document.getElementById('pickedMonth').value = today.getFullYear() + "-" + (today.getMonth()<9?"0":"") + (today.getMonth()+1);
+				changeDate();
+			}
+			
+			function gotoNext(addMonth)
+			{
+				let pickedMonth = new Date(document.getElementById('pickedMonth').value + "-01");
+				pickedMonth.setMonth(pickedMonth.getMonth() + addMonth);
+				document.getElementById('pickedMonth').value = pickedMonth.getFullYear() + "-" + (pickedMonth.getMonth()<9?"0":"") + (pickedMonth.getMonth()+1);
+				changeDate();
+			}
+			
+			
+			window.onload = prepareSite;
+		</script>
+		<style>
+			body {
+				background-color: rgb(10,148,255);
+			}
+			div.wrapper {
+				background-color: white;
+				width: 60%;
+				margin: 0 auto;
+			}
+			div#config {
+				width: fit-content;
+				padding: 0;
+			}
+			
+			div.content div {
+				width: fit-content;
+				padding: 5px 1.3em ;
+				margin: 0 auto;
+			}
+			div.content div:not(#config) {
+				height: 14em;
+			}
+			table {
+				border-collapse: collapse;
+				border-spacing: 0;
+			}
+			td {
+				text-align: center;
+				padding: 3px;
+				border-style: solid;
+				border-width: 2px;
+				border-color: rgb(192,192,192);
+				font-weight: bold;
+			}
+			td.today {
+				background: rgb(255,127,127);
+				border-color: rgb(255,0,0);
+			}
+			td.outsideMonth {
+				color: rgb(120,120,120);
+				font-weight: normal;
+			}
+			td.calenderWeek {
+				font-style: italic;
+				border-style: none;
+				font-weight: normal;
+				padding-right: 0.4em;
+				text-align: left;
+			}
+			th {
+				border-style: solid;
+				border-width: 2px;
+				border-color: rgb(192,192,192);
+				border-top: none;
+			}
+			th.calenderWeek {
+				border-style: none;
+				font-style: italic;
+				padding-right: 0.4em;
+				text-align: left;
+			}
+			h1 {
+				width: fit-content;
+				margin: 0.4em auto 1em auto;
+			}
+			h2 {
+				margin-top: 0.4em;
+				margin-bottom: 0.2em;
+			}
+			div.calenderWrapper {
+				width: fit-content;
+				display: inline-flex;
+				align-items: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+			<h1>Dreimonats Kalender</h1>
+			<div class="content">
+				<div id="config">
+					<lable for="pickedMonth">Aktueller Monat:&nbsp;</lable>
+					<input id="pickedMonth" type="month">
+					<button type="button" id="today">heute</button>
+				</div>
+			</div>
+			<div class="content" id="kalender">
+				<div id="letzter"><h2>Januar 2024</h2><table><tr><th class="calenderWeek">KW</th><th>Mo</th><th>Di</th><th>Mi</th><th>Do</th><th>Fr</th><th>Sa</th><th>So</th></tr><tr><td class="calenderWeek">1</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td></tr><tr><td class="calenderWeek">2</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td></tr><tr><td class="calenderWeek">3</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td></tr><tr><td class="calenderWeek">4</td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td><td>28</td></tr><tr><td class="calenderWeek">5</td><td>29</td><td>30</td><td>31</td><td class="outsideMonth">1</td><td class="outsideMonth">2</td><td class="outsideMonth">3</td><td class="outsideMonth">4</td></tr></table></div>
+				<hr>
+				<div>
+				<div class="calenderWrapper">
+					<button type="button" id="prev">zurück</button>
+					<div id="dieser"><h2>Februar 2024</h2><table><tr><th class="calenderWeek">KW</th><th>Mo</th><th>Di</th><th>Mi</th><th>Do</th><th>Fr</th><th>Sa</th><th>So</th></tr><tr><td class="calenderWeek">5</td><td class="outsideMonth">29</td><td class="outsideMonth">30</td><td class="outsideMonth">31</td><td>1</td><td>2</td><td>3</td><td>4</td></tr><tr><td class="calenderWeek">6</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td></tr><tr><td class="calenderWeek">7</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td></tr><tr><td class="calenderWeek">8</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td></tr><tr><td class="calenderWeek">9</td><td>26</td><td>27</td><td class="today">28</td><td>29</td><td class="outsideMonth">1</td><td class="outsideMonth">2</td><td class="outsideMonth">3</td></tr></table></div>
+					<button type="button" id="next">weiter</button>
+				</div>
+				</div>
+				<hr>
+				<div id="naechster"><h2>März 2024</h2><table><tr><th class="calenderWeek">KW</th><th>Mo</th><th>Di</th><th>Mi</th><th>Do</th><th>Fr</th><th>Sa</th><th>So</th></tr><tr><td class="calenderWeek">9</td><td class="outsideMonth">26</td><td class="outsideMonth">27</td><td class="outsideMonth today">28</td><td class="outsideMonth">29</td><td>1</td><td>2</td><td>3</td></tr><tr><td class="calenderWeek">10</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td></tr><tr><td class="calenderWeek">11</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td></tr><tr><td class="calenderWeek">12</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td></tr><tr><td class="calenderWeek">13</td><td>25</td><td>26</td><td>27</td><td>28</td><td>29</td><td>30</td><td>31</td></tr></table></div>
+			</div>
+		</div>
+	</body>
+</html>
